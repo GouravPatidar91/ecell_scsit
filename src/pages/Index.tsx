@@ -1,15 +1,16 @@
-
 import React, { useEffect } from 'react';
-import { Toaster } from "@/components/ui/toaster";
-import Navbar from '@/components/Navbar';
-import HeroSection from '@/components/HeroSection';
-import AboutSection from '@/components/AboutSection';
-import InitiativesSection from '@/components/InitiativesSection';
-import InfoBulletin from '@/components/InfoBulletin';
-import TeamSection from '@/components/TeamSection';
-import EventGallery from '@/components/EventGallery';
-import ContactSection from '@/components/ContactSection';
-import Footer from '@/components/Footer';
+import { Toaster } from '../components/ui/toaster';
+import Navbar from '../components/Navbar';
+import HeroSection from '../components/HeroSection';
+import AboutSection from '../components/AboutSection';
+import InitiativesSection from '../components/InitiativesSection';
+import InfoBulletin from '../components/InfoBulletin';
+import TeamSection from '../components/TeamSection';
+import EventGallery from '../components/EventGallery';
+import ContactSection from '../components/ContactSection';
+import Footer from '../components/Footer';
+import TestimonialsSection from '../components/TestimonialsSection';
+import HODQuoteSection from '../components/HODQuoteSection';
 
 const Index: React.FC = () => {
   useEffect(() => {
@@ -28,10 +29,12 @@ const Index: React.FC = () => {
       <Navbar />
       <HeroSection />
       <InfoBulletin />
+      <HODQuoteSection />
       <AboutSection />
-      <InitiativesSection />
-      <TeamSection />
       <EventGallery />
+      <TeamSection /> 
+      <InitiativesSection />
+      <TestimonialsSection />
       <ContactSection />
       <Footer />
       <Toaster />

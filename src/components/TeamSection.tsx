@@ -1,8 +1,8 @@
-
 import React, { useEffect, useState } from 'react';
+import Slider from 'react-slick';
 import RevealAnimation from './RevealAnimation';
 import ImageWithFallback from './ImageWithFallback';
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from '../integrations/supabase/client';
 
 interface SocialLink {
   id?: string;
@@ -27,7 +27,6 @@ interface TeamMemberProps {
 }
 
 const TeamMember: React.FC<TeamMemberProps> = ({ name, position, imageSrc, socialLinks, delay = 0 }) => {
-  // Function to get the appropriate icon color based on the platform
   const getSocialIconColor = (platform: string) => {
     switch (platform) {
       case 'linkedin': return 'bg-[#0A66C2]';
@@ -41,7 +40,7 @@ const TeamMember: React.FC<TeamMemberProps> = ({ name, position, imageSrc, socia
 
   return (
     <RevealAnimation delay={delay} className="h-full">
-      <div className="team-card relative bg-white dark:bg-black rounded-lg overflow-hidden h-full">
+      <div className="team-card relative bg-white dark:bg-black rounded-lg overflow-hidden h-full mx-2">
         <div className="overflow-hidden aspect-[3/4]">
           <ImageWithFallback
             src={imageSrc}
@@ -50,9 +49,10 @@ const TeamMember: React.FC<TeamMemberProps> = ({ name, position, imageSrc, socia
           />
         </div>
         <div className="p-5 text-center">
-          <h3 className="text-xl font-semibold mb-1 text-primary">{name}</h3>
-          <p className="text-blue-500 text-sm mb-3 font-medium">{position}</p>
-          
+          <h3 className="text-xl font-semibold mb-1 text-primary truncate">{name}</h3>
+
+          <p className="text-blue-500 text-sm mb-3 font-medium truncate">{position}</p>
+
           <div className="flex justify-center space-x-3">
             {socialLinks.map((link, index) => (
               <a
@@ -77,6 +77,7 @@ const TeamSection: React.FC = () => {
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isMobile, setIsMobile] = useState<boolean>(window.innerWidth < 640); // Determine if the screen is mobile
 
   useEffect(() => {
     const fetchTeamMembers = async () => {
@@ -84,7 +85,6 @@ const TeamSection: React.FC = () => {
         setIsLoading(true);
         setError(null);
         
-        // Fetch team members
         const { data: members, error: membersError } = await supabase
           .from('team_members')
           .select('*')
@@ -94,7 +94,6 @@ const TeamSection: React.FC = () => {
           throw new Error(`Error fetching team members: ${membersError.message}`);
         }
 
-        // Fetch social links for each member
         const membersWithLinks = await Promise.all(
           members.map(async (member) => {
             const { data: socialLinks, error: linksError } = await supabase
@@ -118,138 +117,90 @@ const TeamSection: React.FC = () => {
       } catch (err) {
         console.error("Error fetching team members:", err);
         setError(err instanceof Error ? err.message : 'An unknown error occurred');
-        
-        // If there's an error fetching from Supabase, try to load from localStorage as fallback
-        const savedMembers = localStorage.getItem('team_members');
-        if (savedMembers) {
-          try {
-            setTeamMembers(JSON.parse(savedMembers));
-            setError(null); // Clear error if we could load from localStorage
-          } catch (parseErr) {
-            console.error("Error parsing team members from localStorage:", parseErr);
-          }
-        }
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchTeamMembers();
+
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 640); // Update state on window resize
+    };
+
+    window.addEventListener('resize', handleResize); // Add event listener for resize
+    return () => {
+      window.removeEventListener('resize', handleResize); // Cleanup event listener
+    };
   }, []);
 
-  // If loading, show skeleton
   if (isLoading) {
     return (
-      <section id="team" className="py-24 px-4 bg-secondary/30">
+      <section id="team" className="py-24 px-4" style={{ backgroundColor: '#252c3b' }}>
         <div className="max-w-7xl mx-auto">
           <span className="inline-block py-1 px-3 mb-3 text-xs tracking-wider uppercase rounded-full bg-secondary text-primary font-medium">Our Team</span>
           <div className="flex flex-col md:flex-row md:justify-between md:items-end mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold tracking-tight">Meet The Leaders</h2>
+            <h2 className="text-3xl md:text-4xl font-bold tracking-tight">Meet The Team</h2>
             <p className="text-muted-foreground max-w-md mt-4 md:mt-0">
               Dedicated individuals committed to fostering innovation and entrepreneurship in our community.
             </p>
           </div>
-          
           <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-8">
-            {[1, 2, 3, 4, 5, 6].map((n) => (
-              <div key={n} className="bg-white dark:bg-black rounded-lg overflow-hidden h-full">
-                <div className="aspect-[3/4] bg-gray-200 animate-pulse"></div>
-                <div className="p-5 text-center">
-                  <div className="h-6 bg-gray-200 animate-pulse rounded mb-2 mx-auto w-3/4"></div>
-                  <div className="h-4 bg-gray-200 animate-pulse rounded mb-3 mx-auto w-1/2"></div>
-                  <div className="flex justify-center space-x-3">
-                    <div className="w-8 h-8 rounded-full bg-gray-200 animate-pulse"></div>
-                    <div className="w-8 h-8 rounded-full bg-gray-200 animate-pulse"></div>
+            <Slider dots={true} infinite={true} speed={500} slidesToShow={1} slidesToScroll={1} autoplay={true} autoplaySpeed={3000}>
+              {[1, 2, 3, 4, 5, 6].map((n) => (
+                <div key={n} className="bg-white dark:bg-black rounded-lg overflow-hidden h-full">
+                  <div className="aspect-[3/4] bg-gray-200 animate-pulse"></div>
+                  <div className="p-5 text-center">
+                    <div className="h-6 bg-gray-200 animate-pulse rounded mb-2 mx-auto w-3/4"></div>
+                    <div className="h-4 bg-gray-200 animate-pulse rounded mb-3 mx-auto w-1/2"></div>
+                    <div className="flex justify-center space-x-3">
+                      <div className="w-8 h-8 rounded-full bg-gray-200 animate-pulse"></div>
+                      <div className="w-8 h-8 rounded-full bg-gray-200 animate-pulse"></div>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </Slider>
           </div>
         </div>
       </section>
     );
   }
 
-  // Show error message if there's an error and no data
   if (error && teamMembers.length === 0) {
     return (
-      <section id="team" className="py-24 px-4 bg-secondary/30">
+      <section id="team" className="py-24 px-4" style={{ backgroundColor: '#252c3b' }}>
         <div className="max-w-7xl mx-auto text-center">
           <span className="inline-block py-1 px-3 mb-3 text-xs tracking-wider uppercase rounded-full bg-secondary text-primary font-medium">Our Team</span>
-          <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-6">Meet The Leaders</h2>
+          <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-6">Meet The Team</h2>
           <p className="text-destructive">Error loading team members. Please try again later.</p>
         </div>
       </section>
     );
   }
 
-  // Use default members if none were found
-  const displayMembers = teamMembers.length > 0 ? teamMembers : [
-    {
-      id: "1",
-      name: "Alex Johnson",
-      position: "President",
-      image_url: "https://images.unsplash.com/photo-1580489944761-15a19d654956?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=761&q=80",
-      socialLinks: [
-        { icon: "linkedin", url: "#" },
-        { icon: "twitter", url: "#" },
-        { icon: "instagram", url: "#" }
-      ]
-    },
-    {
-      id: "2",
-      name: "Sophia Martinez",
-      position: "Vice President",
-      image_url: "https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=774&q=80",
-      socialLinks: [
-        { icon: "linkedin", url: "#" },
-        { icon: "twitter", url: "#" }
-      ]
-    },
-    {
-      id: "3",
-      name: "David Chen",
-      position: "Secretary",
-      image_url: "https://images.unsplash.com/photo-1607990281513-2c110a25bd8c?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=769&q=80",
-      socialLinks: [
-        { icon: "linkedin", url: "#" },
-        { icon: "instagram", url: "#" }
-      ]
-    },
-    {
-      id: "4",
-      name: "Emma Wilson",
-      position: "Treasurer",
-      image_url: "https://images.unsplash.com/photo-1567532939604-b6b5b0db2604?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=774&q=80",
-      socialLinks: [
-        { icon: "linkedin", url: "#" },
-        { icon: "twitter", url: "#" }
-      ]
-    },
-    {
-      id: "5",
-      name: "Michael Rodriguez",
-      position: "Marketing Lead",
-      image_url: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=774&q=80",
-      socialLinks: [
-        { icon: "linkedin", url: "#" },
-        { icon: "instagram", url: "#" }
-      ]
-    },
-    {
-      id: "6",
-      name: "Jessica Kim",
-      position: "Events Coordinator",
-      image_url: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=774&q=80",
-      socialLinks: [
-        { icon: "linkedin", url: "#" },
-        { icon: "twitter", url: "#" }
-      ]
-    }
-  ];
+  const sliderSettings = {
+    dots: true,
+    infinite: true,
+    speed: 500,
+    slidesToShow: 3, // Show 3 slides in desktop mode
+    slidesToScroll: 1,
+    autoplay: true,
+    autoplaySpeed: 3000,
+    arrows: !isMobile, // Disable arrows in mobile mode
+    responsive: [
+      {
+        breakpoint: 768, // Adjust for mobile devices
+        settings: {
+          slidesToShow: 1, // Show 1 slide in mobile mode
+          slidesToScroll: 1,
+        },
+      },
+    ],
+  };
 
   return (
-    <section id="team" className="py-24 px-4 bg-secondary/30">
+    <section id="team" className="py-24 px-4" style={{ backgroundColor: '#252c3b' }}>
       <div className="max-w-7xl mx-auto">
         <RevealAnimation>
           <span className="inline-block py-1 px-3 mb-3 text-xs tracking-wider uppercase rounded-full bg-secondary text-primary font-medium">Our Team</span>
@@ -257,7 +208,7 @@ const TeamSection: React.FC = () => {
         
         <div className="flex flex-col md:flex-row md:justify-between md:items-end mb-12">
           <RevealAnimation delay={100}>
-            <h2 className="text-3xl md:text-4xl font-bold tracking-tight">Meet The Leaders</h2>
+            <h2 className="text-3xl md:text-4xl font-bold tracking-tight">Meet The Team</h2>
           </RevealAnimation>
           
           <RevealAnimation delay={200}>
@@ -267,21 +218,22 @@ const TeamSection: React.FC = () => {
           </RevealAnimation>
         </div>
         
-        <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-8">
-          {displayMembers.map((member, index) => (
-            <TeamMember
-              key={member.id}
-              name={member.name}
-              position={member.position}
-              imageSrc={member.image_url}
-              socialLinks={member.socialLinks}
-              delay={100 * (index + 1)}
-            />
+        <Slider {...sliderSettings}>
+          {teamMembers.map((member, index) => (
+            <div className="flex justify-center" key={member.id}>
+              <TeamMember
+                name={member.name}
+                position={member.position}
+                imageSrc={member.image_url}
+                socialLinks={member.socialLinks}
+                delay={100 * (index + 1)}
+              />
+            </div>
           ))}
-        </div>
+        </Slider>
       </div>
     </section>
   );
-};
+}
 
 export default TeamSection;
